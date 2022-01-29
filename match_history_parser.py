@@ -104,8 +104,4 @@ print(with_df)
 # against_df = pd.DataFrame(against_df, columns = np.array(hero_stats['id']), index = np.array(hero_stats['id']))
 with_df = pd.DataFrame(with_df, columns = np.array(hero_stats['id']), index = np.array(hero_stats['id']))
 
-<<<<<<< HEAD
-# with_df.to_csv(r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\test.csv')
-=======
 with_df.to_csv(r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\test.csv')
->>>>>>> 400e847d7fb4fc5abf2671b0e4a137fd5ba46d1e
