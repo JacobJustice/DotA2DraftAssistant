@@ -5,6 +5,17 @@ import os
 import json
 
 path = './data/'
+
+api_key_file = './opendota.key'
+api_key_present = False
+
+# Check for api key
+if os.path.exists(api_key_file):
+    api_key_present = True
+    with open(api_key_file) as api_file:
+        api_key = api_file.readline().strip()
+    print("API key present")
+
 # Check whether the specified path exists or not
 if not os.path.exists(path):
     # Create a new directory because it does not exist 
@@ -26,9 +37,14 @@ player_id = 87655200
 def get_player_matches(player_id):
     filename = path+"player_"+str(player_id)+"_matches.json"
     request_url = api_url + "players/" + str(player_id) + "/matches/"
+    payload = {}
+    if api_key_present:
+        payload.update({'api_key':api_key}) 
     return request_if_not_exists(filename
                                 ,request_data
-                                ,request_url=request_url)
+                                ,request_url=request_url
+                                ,payload=payload)
+
 
 #
 # returns match data as dictionary and saves as json
@@ -36,16 +52,20 @@ def get_player_matches(player_id):
 def get_match(match_id):
     filename = path+"match_"+str(match_id)+".json"
     request_url = api_url+"matches/"+str(match_id)
+    payload = {}
+    if api_key_present:
+        payload.update({'api_key':api_key}) 
     return request_if_not_exists(filename
                                 ,request_data
-                                ,request_url=request_url)
+                                ,request_url=request_url
+                                ,payload=payload)
 
 
 #
 # requests player matches from the api
 # saves the json as a file in path
 def request_data(path, **kwargs):
-    response = requests.get(kwargs['request_url'])
+    response = requests.get(kwargs['request_url'],params=kwargs['payload'])
     response_json = response.json()
     with open(path,"w") as json_file:
         json.dump(response_json, json_file)
@@ -59,18 +79,22 @@ def request_data(path, **kwargs):
 def request_if_not_exists(path,func,**kwargs):
     if not os.path.exists(path):
         print("Fetching request")
-        return func(path,**kwargs)
+        response_json = func(path,**kwargs)
+        if "error" in response_json.keys() and response_json['error'] == "Internal Server Error":
+            print("Error fetching request trying again...")
+            time.sleep(1)
+            return request_if_not_exists(path,func,**kwargs)
     else:
-        print("Request already on disk")
+#        print("Request already on disk")
         with open(path) as json_file:
             return json.load(json_file)
+
 
 player_matches = get_player_matches(player_id)
 print(len(player_matches))
 
 for match in player_matches:
-#    time.sleep(1)
+    time.sleep(.01)
     print('\t\tTimestamp: {:%Y-%b-%d %H:%M:%S}'.format(datetime.datetime.now()))
     get_match(match['match_id'])
     print('Got match ',match['match_id'])
-
