@@ -67,8 +67,6 @@ def get_match(match_id):
 def request_data(path, **kwargs):
     response = requests.get(kwargs['request_url'],params=kwargs['payload'])
     response_json = response.json()
-    with open(path,"w") as json_file:
-        json.dump(response_json, json_file)
     return response_json
 
 
@@ -76,16 +74,29 @@ def request_data(path, **kwargs):
 # if the file in path exists, calls the function
 # otherwise returns the file as a dictionary
 # 
-def request_if_not_exists(path,func,**kwargs):
+def request_if_not_exists(path,func,step=0,**kwargs):
+    if step == 3:
+        print('too many recursions returning empty dictionary')
+        with open(path,"w") as json_file:
+            json.dump({}, json_file)
+        return {}
+
     if not os.path.exists(path):
-        print("Fetching request")
+        print('\t\tTimestamp: {:%Y-%b-%d %H:%M:%S}'.format(datetime.datetime.now()))
+        print("Fetching request",kwargs['request_url'])
         response_json = func(path,**kwargs)
-        if "error" in response_json.keys() and response_json['error'] == "Internal Server Error":
+        if "error" in response_json.keys():
+            print(response_json)
             print("Error fetching request trying again...")
             time.sleep(1)
-            return request_if_not_exists(path,func,**kwargs)
+            return request_if_not_exists(path,func,step=step+1,**kwargs)
+        else:
+            print('Got match ',response_json['match_id'])
+            with open(path,"w") as json_file:
+                json.dump(response_json, json_file)
+            return response_json
     else:
-#        print("Request already on disk")
+        #print("Request already on disk")
         with open(path) as json_file:
             return json.load(json_file)
 
@@ -95,6 +106,4 @@ print(len(player_matches))
 
 for match in player_matches:
     time.sleep(.01)
-    print('\t\tTimestamp: {:%Y-%b-%d %H:%M:%S}'.format(datetime.datetime.now()))
     get_match(match['match_id'])
-    print('Got match ',match['match_id'])
