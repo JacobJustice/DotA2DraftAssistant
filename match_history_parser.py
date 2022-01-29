@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import json
+import os
 
 # 87655200 steam32 account ID
 pd.options.mode.chained_assignment = None  # default='warn'
@@ -70,30 +71,41 @@ def add_to_df(with_df, against_df, pb, win, hero_stats):
     
     return with_df, against_df
     
+def get_hero_stats():
+    hero_stats_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\hero_stats\hero_stats.json'
+    hero_stats = pd.DataFrame(make_dict_from_path(hero_stats_path))
+    (x, y) = hero_stats.shape
+    hero_stats['idx_map'] = np.arange(0, x, 1)
+    return hero_stats
 
-hero_stats_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\hero_stats\hero_stats.json'
-hero_stats = pd.DataFrame(make_dict_from_path(hero_stats_path))
-(x, y) = hero_stats.shape
-hero_stats['idx_map'] = np.arange(0, x, 1)
-
-player_wr_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\player_37571649_heroes.json'
-player_wr = make_dict_from_path(player_wr_path)
-player_wr = pd.DataFrame(player_wr)
+def get_player_wr():
+    player_wr_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\player_37571649_heroes.json'
+    player_wr = make_dict_from_path(player_wr_path)
+    player_wr = pd.DataFrame(player_wr)
+    return player_wr
 
 # client.get_player_heroes(p_id)
+hero_stats = get_hero_stats()
 
-match_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\match_6402842723.json'
-match_data = make_dict_from_path(match_path)
-pb, win, words, players = parse_match(match_data, hero_stats, p_id)
+match_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\matches'
 
-print(hero_stats)
+os.chdir(match_path)
+
+files = os.listdir()
+
+(x, y) = hero_stats.shape
 
 with_df = np.zeros((x, x))
 against_df = np.zeros((x, x))
 
-with_df, against_df = add_to_df(with_df, against_df, pb, win, hero_stats)
+for match_history in files:
+    print(match_path + match_history)
+    # match_data = make_dict_from_path(match_path)
+    # pb, win, words, players = parse_match(match_data, hero_stats, p_id)
+    # with_df, against_df = add_to_df(with_df, against_df, pb, win, hero_stats)
+    
 
-against_df = pd.DataFrame(against_df, columns = np.array(hero_stats['id']), index = np.array(hero_stats['id']))
-with_df = pd.DataFrame(with_df, columns = np.array(hero_stats['id']), index = np.array(hero_stats['id']))
+# against_df = pd.DataFrame(against_df, columns = np.array(hero_stats['id']), index = np.array(hero_stats['id']))
+# with_df = pd.DataFrame(with_df, columns = np.array(hero_stats['id']), index = np.array(hero_stats['id']))
 
-with_df.to_csv(r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\test.csv')
+# with_df.to_csv(r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\test.csv')
