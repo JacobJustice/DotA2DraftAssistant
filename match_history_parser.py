@@ -84,11 +84,11 @@ def get_player_wr(player_wr_path):
     return player_wr
 
 def main(match_path):
-    hero_stats_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\hero_stats\hero_stats.json'
+    hero_stats_path = 'hero_stats/hero_stats.json'
     hero_stats = get_hero_stats(hero_stats_path)
 
-    player_wr_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\player_37571649_heroes.json'
-    player_wr = get_player_wr(player_wr_path)
+    #player_wr_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\player_37571649_heroes.json'
+    #player_wr = get_player_wr(player_wr_path)
 
     os.chdir(match_path)
 
@@ -100,7 +100,7 @@ def main(match_path):
     heroes_against = np.zeros((x, x))
 
     for match_history in files:
-        match_data = make_dict_from_path(match_path + r"\\" + match_history)
+        match_data = make_dict_from_path(match_path + match_history)
         pb, win, words, players = parse_match(match_data, p_id)
         heroes_with, heroes_against = add_to_df(heroes_with, heroes_against, pb, win, hero_stats)
 
@@ -109,5 +109,5 @@ def main(match_path):
 
     print(np.unique(heroes_with), np.unique(heroes_against))
 
-match_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\matches'
+match_path = './data/training/'
 main(match_path)
