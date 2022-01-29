@@ -5,14 +5,11 @@ import matplotlib.pyplot as plt
 import json
 
 # 87655200 steam32 account ID
+pd.options.mode.chained_assignment = None  # default='warn'
 
 client = opendota.OpenDota()
-# client.get_matches('match-id')
+
 # player = client.get_player(87655200)
-
-
-# for matchid in match_ids:
-#     client.get_matches(matchid)
 
 p_id = 37571649
 
@@ -28,6 +25,8 @@ def parse_match(d, herostats, p_id):
     players = pd.DataFrame(d['players'])
 
     test = players[players['account_id'] == p_id]
+    team = players['isRadiant']
+    print(team)
     (x, y) = test.shape
 
     if x > 0:
@@ -39,21 +38,62 @@ def parse_match(d, herostats, p_id):
         player_hero = np.array(test['hero_id'])[0]
         check = np.array(pick_bans['hero_id'] == player_hero)
         pick_bans['current_player'] = check
-        return pick_bans.sort_values(by = ['team']), all_words, players
+        win = d['radiant_win']
+        return pick_bans.sort_values(by = ['team']), win, all_words, players
     else:
         return None
 
-hero_stats_path = r'DotA2DraftAssistant\hero_stats.json'
+def add_to_df(with_df, against_df, pb, win, hero_stats):
+    pb = pb[pb['is_pick'] == True]
+    with_pb = pb[pb['team'] == 0]
+    against_pb = pb[pb['team'] == 1]
+
+    hero_id = np.array(pb[pb['current_player'] == True]['hero_id'])[0]
+    hero_id_map = int(hero_stats[hero_stats['id'] == hero_id]['idx_map'])
+
+    with_pb_ids = np.array(with_pb['hero_id'], dtype = int)
+    against_pb_ids = np.array(against_pb['hero_id'], dtype = int)
+
+    with_pb_ids_map = np.zeros(5, dtype = int)
+    against_pb_ids_map = np.zeros(5, dtype = int)
+
+    for i in range(5):
+        with_pb_ids_map[i] = int(hero_stats[hero_stats['id'] == with_pb_ids[i]]['idx_map'])
+        against_pb_ids_map[i] = int(hero_stats[hero_stats['id'] == against_pb_ids[i]]['idx_map'])
+
+    if win == True:
+        with_df[hero_id_map, with_pb_ids_map] += 1
+        against_df[hero_id_map, against_pb_ids_map] += 1
+    else:
+        with_df[hero_id_map, with_pb_ids_map] -= 1
+        against_df[hero_id_map, against_pb_ids_map] -= 1
+    
+    return with_df, against_df
+    
+
+hero_stats_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\hero_stats\hero_stats.json'
 hero_stats = pd.DataFrame(make_dict_from_path(hero_stats_path))
+(x, y) = hero_stats.shape
+hero_stats['idx_map'] = np.arange(0, x, 1)
 
-hero_id = np.array(hero_stats['id'])
+player_wr_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\player_37571649_heroes.json'
+player_wr = make_dict_from_path(player_wr_path)
+player_wr = pd.DataFrame(player_wr)
 
-for id in hero_id:
-    client.get_hero_benchmarks(id)
+# client.get_player_heroes(p_id)
 
-# print(hero_stats.columns)
+match_path = r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\match_6402842723.json'
+match_data = make_dict_from_path(match_path)
+pb, win, words, players = parse_match(match_data, hero_stats, p_id)
 
-# match_path = r'C:\Users\nikhi\dota2\match_6402842723.json'
-# match_data = make_dict_from_path(match_path)
-# pb, words, players = parse_match(match_data, hero_stats, p_id)
-# print(pb)
+print(hero_stats)
+
+with_df = np.zeros((x, x))
+against_df = np.zeros((x, x))
+
+with_df, against_df = add_to_df(with_df, against_df, pb, win, hero_stats)
+
+against_df = pd.DataFrame(against_df, columns = np.array(hero_stats['id']), index = np.array(hero_stats['id']))
+with_df = pd.DataFrame(with_df, columns = np.array(hero_stats['id']), index = np.array(hero_stats['id']))
+
+with_df.to_csv(r'C:\Users\nikhi\Documents\Clemson\CUHackit\2022\DotA2DraftAssistant\test.csv')
