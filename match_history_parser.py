@@ -139,9 +139,8 @@ def main(match_path):
         else:
             num_invalid+=1
 
-
-    heroes_with = np.where(heroes_with != -1, heroes_with / with_tally_df, -1)
-    heroes_against = np.where(heroes_against != -1, heroes_against / against_tally_df, -1)
+#    heroes_with = np.where(heroes_with != -1, heroes_with / with_tally_df, -1)
+#    heroes_against = np.where(heroes_against != -1, heroes_against / against_tally_df, -1)
 
     heroes_with_df = pd.DataFrame(heroes_with, columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
     heroes_against_df = pd.DataFrame(heroes_against, columns=hero_stats['localized_name'], index=hero_stats['localized_name'])

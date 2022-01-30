@@ -5,7 +5,6 @@ heroes_wr_with_df = pd.read_csv('./heroes_with_df.csv', index_col='localized_nam
 heroes_wr_against_df = pd.read_csv('./heroes_against_df.csv', index_col='localized_name')
 heroes_tally_with_df = pd.read_csv('./with_tally_df.csv', index_col='localized_name')
 heroes_tally_against_df = pd.read_csv('./against_tally_df.csv', index_col='localized_name')
-print(heroes_wr_against_df)
 
 #
 # can be any number of both
@@ -20,8 +19,6 @@ def compute_winrate(heroes_with, heroes_against):
      selected_heroes_concat = pd.concat([selected_heroes_with, selected_heroes_against], axis=1)
      selected_heroes_concat['sum'] = selected_heroes_concat[selected_heroes_concat.columns].sum(axis=1)
      selected_heroes_concat = selected_heroes_concat.sort_values('sum', ascending=False)
-     print(selected_heroes_concat)
-
      final_df = (selected_heroes_concat['sum'] / (len(heroes_with)+len(heroes_against)))
      return final_df
 
@@ -38,4 +35,4 @@ heroes_against = ["Zeus"
                 , "Dawnbreaker"
                 , "Slark"]
 
-compute_winrate(heroes_with, heroes_against)
+print(compute_winrate(heroes_with, heroes_against))
