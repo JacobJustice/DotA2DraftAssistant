@@ -4,7 +4,7 @@ import datetime
 import os
 import json
 
-path = './data/'
+path = './5_data/'
 
 api_key_file = './opendota.key'
 api_key_present = False
@@ -24,8 +24,20 @@ if not os.path.exists(path):
 
 api_url = "https://api.opendota.com/api/"
 
-# MaximumDavai
-player_id = 87655200
+## MaximumDavai
+#player_id = 87655200
+
+# Malchin
+#player_id = 886742476
+
+# hatred
+#player_id = 364057169
+
+# Asura
+player_id = 1114792376
+
+#Marselle
+#player_id = 425536525
 
 # justicej
 #player_id = 37571649
@@ -85,13 +97,13 @@ def request_if_not_exists(path,func,step=0,**kwargs):
         print('\t\tTimestamp: {:%Y-%b-%d %H:%M:%S}'.format(datetime.datetime.now()))
         print("Fetching request",kwargs['request_url'])
         response_json = func(path,**kwargs)
-        if "error" in response_json.keys():
+        if isinstance(response_json, dict) and "error" in response_json.keys():
             print(response_json)
             print("Error fetching request trying again...")
             time.sleep(1)
             return request_if_not_exists(path,func,step=step+1,**kwargs)
         else:
-            print('Got match ',response_json['match_id'])
+            #print('Got match ',response_json['match_id'])
             with open(path,"w") as json_file:
                 json.dump(response_json, json_file)
             return response_json
