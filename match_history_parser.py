@@ -1,12 +1,10 @@
 import opendota
+import sys
+import argparse
 import numpy as np
 import pandas as pd
 import json
 import os
-parser = argparse.ArgumentParser()
-parser.add_argument('--player', help='Steam32 Player ID')
-parser.add_argument('--jsons', help='directory of match jsons')
-args = parser.parse_args(sys.argv[1:])
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -18,8 +16,6 @@ client = opendota.OpenDota()
 
 # client.get_player_heroes(p_id)
 
-p_id = int(args.player)
-match_path = args.jsons
 
 def make_dict_from_path(path):
     with open(path, 'r') as f:
@@ -129,6 +125,15 @@ def remove_zeros(with_df, against_df, hero_stats):
     return with_df, against_df
 
 def main(match_path):
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--player', help='Steam32 Player ID')
+    parser.add_argument('--jsons', help='directory of match jsons')
+    args = parser.parse_args(sys.argv[1:])
+
+    p_id = int(args.player)
+    match_path = args.jsons
+
     if not os.path.exists('./hero_stats/'):
         os.mkdir('./hero_stats/')
 
@@ -172,11 +177,15 @@ def main(match_path):
     heroes_with_df = pd.DataFrame(heroes_with, columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
     heroes_against_df = pd.DataFrame(heroes_against, columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
 
-    os.chdir('../..')
+    os.chdir('~/Code/DotA2DraftAssistant/')
+
+    print(p_id)
     if not os.path.exists('./'+str(p_id)+'/'):
-        os.mkdir('./'+str(p_id)+'/')
+        print(p_id)
+        os.makedirs('./'+str(p_id)+'/')
+
     heroes_with_df.to_csv(str(p_id)+'/heroes_with_df.csv')
-    heroes_against_df.to_csv(str(p_id)+'./heroes_against_df.csv')
+    heroes_against_df.to_csv(str(p_id)+'/heroes_against_df.csv')
 
     with_tally_df = pd.DataFrame(np.where(with_tally_df == -1, 0, with_tally_df), columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
     with_tally_df.to_csv(str(p_id)+'/with_tally_df.csv')
