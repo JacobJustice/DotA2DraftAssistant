@@ -23,6 +23,11 @@ def make_dict_from_path(path):
     contents = np.array(contents)[0]
     return json.loads(contents)
 
+# checks if the match is valid, if all players were present,
+# the player_id supplied was actually in the match
+# 
+# returns list of heroes in the match (with and against player_id) and if player_id won the match
+# 
 def parse_match(match_json, p_id):
     # Defines the dataframes that will be output
 
@@ -30,7 +35,7 @@ def parse_match(match_json, p_id):
     try:
         players = pd.DataFrame(match_json['players'])
     except:
-        print('no player data')
+        #print('no player data')
         return None, None
 
     picks = players[['hero_id', 'isRadiant', 'account_id', 'patch']]
@@ -46,7 +51,7 @@ def parse_match(match_json, p_id):
         win = match_json['radiant_win']
         return picks, win
     else:
-        print('Player not in game')
+        #print('Player not in game')
         return None, None
 
 def add_to_df(with_df, against_df, with_tally_df, against_tally_df, pb, win, hero_stats):
@@ -55,7 +60,7 @@ def add_to_df(with_df, against_df, with_tally_df, against_tally_df, pb, win, her
 
     # Sorts who is on players team and who isn't
     with_pb = pb[pb['isRadiant'] == player_team]
-    with_pb = pb[pb['is_player'] == False] 
+    with_pb = with_pb[with_pb['is_player'] == False] 
     against_pb = pb[pb['isRadiant'] != player_team]
     # Maps player id to integer list between 0 and 121 after identifying what hero_id the player played. This step is neccessary as the hero_id does
     # not stay within the range of 0-121
@@ -67,11 +72,12 @@ def add_to_df(with_df, against_df, with_tally_df, against_tally_df, pb, win, her
     against_pb_ids = np.array(against_pb['hero_id'], dtype = int)
 
     # Maps hero_id of allies and enemies to correct for the single jump in values
-    with_pb_ids_map = np.zeros(5, dtype = int)
+    with_pb_ids_map = np.zeros(4, dtype = int)
     against_pb_ids_map = np.zeros(5, dtype = int)
 
-    for i in range(5):
+    for i in range(4):
         with_pb_ids_map[i] = int(hero_stats[hero_stats['id'] == with_pb_ids[i]]['idx_map'])
+    for i in range(5):
         against_pb_ids_map[i] = int(hero_stats[hero_stats['id'] == against_pb_ids[i]]['idx_map'])
 
     if win == True:
@@ -122,13 +128,18 @@ def main(match_path):
     with_tally_df = np.ones((x, x)) * -1
     against_tally_df = np.ones((x, x)) * -1
 
+    num_invalid = 0
+
     for i, match_history in enumerate(files):
-        print(match_history, i)
+        #print(match_history, i)
         match_data = make_dict_from_path(match_history)
         pb, win = parse_match(match_data, p_id)
 #        print(pb)
         if isinstance(pb, pd.DataFrame):
             heroes_with, heroes_against, with_tally_df, against_tally_df  = add_to_df(heroes_with, heroes_against, with_tally_df, against_tally_df, pb, win, hero_stats)
+        else:
+            num_invalid+=1
+
 
     heroes_with = np.where(heroes_with != -1, heroes_with / with_tally_df, -1)
     heroes_against = np.where(heroes_against != -1, heroes_against / against_tally_df, -1)
@@ -140,10 +151,13 @@ def main(match_path):
     heroes_with_df.to_csv('./heroes_with_df.csv')
     heroes_against_df.to_csv('./heroes_against_df.csv')
 
-    pd.DataFrame(with_tally_df, columns=hero_stats['localized_name'], index=hero_stats['localized_name']).to_csv('./with_tally_df.csv')
-    pd.DataFrame(against_tally_df, columns=hero_stats['localized_name'], index=hero_stats['localized_name']).to_csv('./against_tally_df.csv')
+    with_tally_df = pd.DataFrame(np.where(with_tally_df == -1, 0, with_tally_df), columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
+    with_tally_df.to_csv('./with_tally_df.csv')
+    against_tally_df = pd.DataFrame(np.where(against_tally_df == -1, 0, against_tally_df), columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
+    against_tally_df.to_csv('./against_tally_df.csv')
 
     print(np.unique(heroes_with), np.unique(heroes_against))
+    print(num_invalid)
 
-match_path = './data/validation/'
+match_path = './data/training/'
 main(match_path)
