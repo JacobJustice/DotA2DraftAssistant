@@ -55,8 +55,8 @@ def add_to_df(with_df, against_df, with_tally_df, against_tally_df, pb, win, her
 
     # Sorts who is on players team and who isn't
     with_pb = pb[pb['isRadiant'] == player_team]
+    with_pb = pb[pb['is_player'] == False] 
     against_pb = pb[pb['isRadiant'] != player_team]
-
     # Maps player id to integer list between 0 and 121 after identifying what hero_id the player played. This step is neccessary as the hero_id does
     # not stay within the range of 0-121
     hero_id = np.array(pb[pb['is_player'] == True]['hero_id'])[0]
