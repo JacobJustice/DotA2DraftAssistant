@@ -102,6 +102,21 @@ def get_player_wr(player_wr_path):
     player_wr = pd.DataFrame(player_wr)
     return player_wr
 
+def remove_zeros(with_df, against_df, hero_stats):
+    hero_ids = np.array(hero_stats['id'])
+    (x, y) = with_df.shape
+    global_winrate_grid = pd.read_csv("./hero_stats/global_wr_table.csv")
+
+    for i in range(x):
+        where_with_zero = np.where(with_df[i] == 0)
+        where_against_zero = np.where(against_df[i] == 0)
+
+        global_winrate_i = np.array(global_winrate_grid.iloc[i])
+        against_df[where_against_zero] = global_winrate_i[where_against_zero]
+        #with_df[where_with_zero] = global_winrate[where_with_zero]
+
+    return with_df, against_df
+
 def main(match_path):
     if not os.path.exists('./hero_stats/'):
         os.mkdir('./hero_stats/')
@@ -138,22 +153,22 @@ def main(match_path):
             heroes_with, heroes_against, with_tally_df, against_tally_df  = add_to_df(heroes_with, heroes_against, with_tally_df, against_tally_df, pb, win, hero_stats)
         else:
             num_invalid+=1
+    
 
+    #heroes_with = np.where(heroes_with != -1, heroes_with / with_tally_df, -1)
+    #heroes_against = np.where(heroes_against != -1, heroes_against / against_tally_df, -1)
 
-    heroes_with = np.where(heroes_with != -1, heroes_with / with_tally_df, -1)
-    heroes_against = np.where(heroes_against != -1, heroes_against / against_tally_df, -1)
+    #heroes_with_df = pd.DataFrame(heroes_with, columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
+    #heroes_against_df = pd.DataFrame(heroes_against, columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
 
-    heroes_with_df = pd.DataFrame(heroes_with, columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
-    heroes_against_df = pd.DataFrame(heroes_against, columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
+    #os.chdir('../..')
+    #heroes_with_df.to_csv('./heroes_with_df.csv')
+    #heroes_against_df.to_csv('./heroes_against_df.csv')
 
-    os.chdir('../..')
-    heroes_with_df.to_csv('./heroes_with_df.csv')
-    heroes_against_df.to_csv('./heroes_against_df.csv')
-
-    with_tally_df = pd.DataFrame(np.where(with_tally_df == -1, 0, with_tally_df), columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
-    with_tally_df.to_csv('./with_tally_df.csv')
-    against_tally_df = pd.DataFrame(np.where(against_tally_df == -1, 0, against_tally_df), columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
-    against_tally_df.to_csv('./against_tally_df.csv')
+    #with_tally_df = pd.DataFrame(np.where(with_tally_df == -1, 0, with_tally_df), columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
+    #with_tally_df.to_csv('./with_tally_df.csv')
+    #against_tally_df = pd.DataFrame(np.where(against_tally_df == -1, 0, against_tally_df), columns=hero_stats['localized_name'], index=hero_stats['localized_name'])
+    #against_tally_df.to_csv('./against_tally_df.csv')
 
     print(np.unique(heroes_with), np.unique(heroes_against))
     print(num_invalid)
