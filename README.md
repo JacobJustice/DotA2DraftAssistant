@@ -9,4 +9,4 @@ The model takes into account:
  + The heroes on the enemy team
  + How you perform as any given hero AGAINST the heroes on the ENEMY team
 
-This is intended to be used during captains mode, and an assisting program is available that runs the model while reading the heroes from the game using Computer Vision.
+This is intended to be used during captains mode, and an assisting program (`poll_screen.py`) is available that runs the model while reading the heroes from the game using Computer Vision.
